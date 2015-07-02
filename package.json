@@ -1,0 +1,36 @@
+{
+  "name": "dom-diff",
+  "version": "0.0.1",
+  "description": "DOM diffing",
+  "main": "dist/cjs/diff.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/canjs/dom-diff.git"
+  },
+  "keywords": [
+    "DOM",
+    "diffing"
+  ],
+  "author": "Bitovi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/canjs/dom-diff/issues"
+  },
+  "homepage": "https://github.com/canjs/dom-diff",
+  "system": {
+    "main": "diff",
+    "directories": {
+      "lib": "src"
+    }
+  },
+  "devDependencies": {
+    "steal": "^0.10.5",
+    "steal-qunit": "0.0.4"
+  },
+  "dependencies": {
+    "is-object": "^1.0.1"
+  }
+}
