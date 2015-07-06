@@ -1,14 +1,18 @@
 var NodeProp = require("./types/node_prop");
 var Patch = require("./types/patch");
+var dom = require("./dom-id");
 
 module.exports = deserialize;
 
-function deserialize(w){
+function deserialize(w, diffOptions){
+	var root = diffOptions && diffOptions.root;
+
 	var patches = [];
 	w.forEach(function(u){
 		var type = u[0];
-		var node = objectToNode(u[1]);
-		var patch = objectToNode(u[2]);
+		var node = u[1] ? dom.getNode(u[1], root) : u[1];
+		var patch = isNodePatch(type) ? objectToNode(u[2], false, diffOptions)
+			: u[2];
 
 		patches.push(new Patch(type, node, patch));
 	});
@@ -53,8 +57,23 @@ function objectToNode(objNode, insideSvg, diffOptions) {
 			node.selected = objNode[NodeProp.SELECTED];
 		}
 		if (objNode[NodeProp.EVENTS]) {
-			addEvents(node, objNode, diffOptions);
+			node.__events = {};
+			objNode[NodeProp.EVENTS].forEach(function(evName){
+				node.__events[evName] = true;
+				if(diffOptions && diffOptions.eventHandler) {
+					node.addEventListener(evName, diffOptions.eventHandler);
+				}
+			});
+
 		}
 	}
 	return node;
+}
+
+var nodePatches = {};
+[Patch.INSERT, Patch.REMOVE].forEach(function(type){
+	nodePatches[type] = true;
+});
+function isNodePatch(type){
+	return nodePatches[type];
 }

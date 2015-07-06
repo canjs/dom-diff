@@ -1,4 +1,7 @@
 var NodeProp = require("./types/node_prop");
+var dom = require("./dom-id");
+
+var isArray = Array.isArray;
 
 module.exports = serialize;
 
@@ -7,11 +10,15 @@ module.exports = serialize;
 function serialize(patches){
 	var out = [];
 	forEach.call(patches, function(p){
-		out.push([
-			p.type,
-			toArray(p.node),
-			toArray(p.patch)
-		]);
+		var a = isArray(p) ? p : [p];
+
+		a.forEach(function(p){
+			out.push([
+				p.type,
+				p.node ? dom.getID(p.node) : p.node,
+				toArray(p.patch)
+			]);
+		});
 	});
 	return out;
 

@@ -8,6 +8,7 @@ var isThunk = requirex("../vnode/is-thunk")
 var handleThunk = requirex("../vnode/handle-thunk")*/
 
 var diffProps = require("./diff-props");
+var diffEvents = require("./diff-events");
 
 module.exports = diff;
 
@@ -37,6 +38,15 @@ function walk(a, b, patch, index) {
 				if (propsPatch) {
 					apply = appendPatch(apply,
 						new Patch(Patch.PROPS, a, propsPatch))
+				}
+				var eventsPatch = diffEvents(a, b);
+				if(eventsPatch[0].length) {
+					apply = appendPatch(apply,
+						new Patch(Patch.ADD_EVENT, a, eventsPatch[0]));
+				}
+				if(eventsPatch[1].length) {
+					apply = appendPatch(apply,
+						new Patch(Patch.REMOVE_EVENT, a, eventsPatch[1]));
 				}
 				apply = diffChildren(a, b, patch, apply, index)
 			} else {

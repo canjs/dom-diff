@@ -9,6 +9,8 @@ Patch.ORDER = 5
 Patch.INSERT = 6
 Patch.REMOVE = 7
 Patch.THUNK = 8
+Patch.ADD_EVENT = 9
+Patch.REMOVE_EVENT = 10
 
 module.exports = Patch;
 
