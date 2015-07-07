@@ -33,12 +33,24 @@ function patchRecursive(rootNode, patches, renderOptions) {
 	indices.forEach(function(i){
 		var patch = patches[i];
 
-		rootNode = applyPatch(rootNode,
-			patch.node,
-			patch,
-			renderOptions);
+		if(isArray(patch)) {
+			patch.forEach(function(patch){
+				rootNode = patchPatch(patch, rootNode, renderOptions);
+			});
+		} else {
+			rootNode = patchPatch(patch, rootNode, renderOptions);
+		}
 	});
 
+}
+
+function patchPatch(patch, rootNode, renderOptions) {
+	rootNode = applyPatch(rootNode,
+		patch.node,
+		patch,
+		renderOptions);
+
+	return rootNode;
 }
 
 function patchRecursiveOld(rootNode, patches, renderOptions) {

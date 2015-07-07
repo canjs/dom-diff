@@ -107,7 +107,8 @@ function diffChildren(a, b, patch, apply, index, diffOptions) {
 			if (rightNode) {
 				// Excess nodes in b need to be added
 				apply = appendPatch(apply,
-					new Patch(Patch.INSERT, null, rightNode));
+					new Patch(Patch.INSERT, null, rightNode,
+							 dom.getID(rightNode.parentNode, diffOptions.root)));
 			}
 		} else {
 			walk(leftNode, rightNode, patch, index, diffOptions);

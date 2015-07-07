@@ -14,10 +14,11 @@ Patch.REMOVE_EVENT = 10
 
 module.exports = Patch;
 
-function Patch(type, node, patch) {
+function Patch(type, node, patch, route) {
     this.type = Number(type);
     this.node = node;
     this.patch = patch;
+	this.route = route;
 }
 
 Patch.prototype.version = version;

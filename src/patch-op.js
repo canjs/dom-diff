@@ -68,8 +68,6 @@ function removeNode(domNode, vNode) {
         parentNode.removeChild(domNode)
     }
 
-    destroyWidget(domNode, vNode);
-
     return null
 }
 

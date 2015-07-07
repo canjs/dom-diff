@@ -193,7 +193,7 @@ QUnit.test("lists works", function(){
 
 	var patches = diff(a, b);
 
-	apply(a, patches);
+	apply(a, patches, {root:a});
 });
 
 QUnit.test("deep changes works", function(){
