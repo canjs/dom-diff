@@ -12,8 +12,8 @@ function diffProps(a, b) {
 
     //for (var aKey in a) {
         if (!b.getAttribute(aAttrName)) {
-            diff = diff || {}
-            diff[aAttrName] = undefined
+            diff = diff || []
+			diff.push({name:aAttrName,value:undefined});
         }
 
         var aValue = a[aAttrName]
@@ -23,21 +23,21 @@ function diffProps(a, b) {
             //continue
         } else if (isObject(aValue) && isObject(bValue)) {
             if (getPrototype(bValue) !== getPrototype(aValue)) {
-                diff = diff || {}
-                diff[aAttrName] = bValue
+                diff = diff || []
+				diff.push({name:aAttrName,value:bValue});
             } else if (isHook(bValue)) {
-                 diff = diff || {}
-                 diff[aAttrName] = bValue
+                 diff = diff || []
+				 diff.push({name:aAttrName,value:bValue});
             } else {
                 var objectDiff = diffProps(aValue, bValue)
                 if (objectDiff) {
-                    diff = diff || {}
-                    diff[aAttrName] = objectDiff
+                    diff = diff || []
+					diff.push({name:aAttrName,value:objectDiff});
                 }
             }
         } else {
-            diff = diff || {}
-            diff[aKey] = bValue
+            diff = diff || [];
+			diff.push({name:aKey,value:bValue});
         }
     });
 
@@ -45,15 +45,9 @@ function diffProps(a, b) {
 		var bAttrName = bAttr.name;
 
 		if(!a.getAttribute(bAttrName)) {
-			diff = diff || {};
-			diff[bAttrName] = bAttr.value;
+			diff = diff || [];
+			diff.push({name:bAttrName,value:bAttr.value});
 		}
-
-    //for (var bKey in b) {
-        /*if (!(bKey in a)) {
-            diff = diff || {}
-            diff[bKey] = b[bKey]
-        }*/
     });
 
     return diff;

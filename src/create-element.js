@@ -4,11 +4,16 @@ var applyAttributes = require("./apply-attributes");
 module.exports = createElement
 
 function createElement(vnode, opts) {
+	if(vnode && vnode._cloned) {
+		delete vnode._cloned;
+		return vnode;
+	}
+
     var doc = opts ? opts.document || document : document
     var warn = opts ? opts.warn : null
 
     if (isText(vnode)) {
-        return doc.createTextNode(vnode.text)
+        return doc.createTextNode(vnode.nodeValue)
     } else if (!isNode(vnode)) {
         if (warn) {
             warn("Item is not a valid virtual dom node", vnode)
@@ -26,7 +31,7 @@ function createElement(vnode, opts) {
     var children = vnode.childNodes;
 
     for (var i = 0; i < children.length; i++) {
-        var childNode = createElement(children.get(i), opts);
+        var childNode = createElement(children.item(i), opts);
         if (childNode) {
             node.appendChild(childNode);
         }

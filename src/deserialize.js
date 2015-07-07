@@ -67,6 +67,7 @@ function objectToNode(objNode, insideSvg, diffOptions) {
 
 		}
 	}
+	node._cloned = true;
 	return node;
 }
 

@@ -5,6 +5,8 @@ var VPatch = requirex("../vnode/vpatch.js")
 
 var updateWidget = requirex("./update-widget")*/
 
+var applyAttributes = require("./apply-attributes");
+
 var Patch = require("./types/patch");
 
 module.exports = applyPatch
@@ -19,21 +21,41 @@ function applyPatch(vpatch, domNode, renderOptions) {
             return removeNode(domNode, vNode)
         case Patch.INSERT:
             return insertNode(domNode, patch, renderOptions)
-        case Patch.VTEXT:
+        case Patch.TEXT:
             return stringPatch(domNode, vNode, patch, renderOptions)
         case Patch.WIDGET:
             return widgetPatch(domNode, vNode, patch, renderOptions)
-        case Patch.VNODE:
+        case Patch.NODE:
             return vNodePatch(domNode, vNode, patch, renderOptions)
         case Patch.ORDER:
             reorderChildren(domNode, patch)
             return domNode
-        case Patch.PROPS:
-            applyProperties(domNode, patch, vNode.properties)
-            return domNode
+        case Patch.ATTRS:
+			applyAttributes(domNode, patch);
+            return domNode;
         case Patch.THUNK:
             return replaceRoot(domNode,
                 renderOptions.patch(domNode, patch, renderOptions))
+		case Patch.ADD_EVENT:
+			if(renderOptions.eventHandler) {
+				domNode.__events = domNode.__events || {};
+				patch.forEach(function(evName){
+					domNode.addEventListener(evName, renderOptions.eventHandler);
+					domNode.__events[evName] = true;
+				});
+			}
+			return domNode;
+		case Patch.REMOVE_EVENT:
+			if(renderOptions.eventHandler) {
+				patch.forEach(function(evName){
+					domNode.removeEventListener(evName, renderOptions.eventHandler);
+					if(domNode.__events) {
+						delete domNode.__events[evName];
+					}
+				});
+			}
+			return domNode;
+
         default:
             return domNode
     }

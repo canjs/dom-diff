@@ -34,10 +34,10 @@ QUnit.test("can be serialized", function(){
 	b.appendChild(span);
 
 	var patches = diff(a, b);
-	var w = serialize(patches);
+	var w = sserialize(patches);
 
-	QUnit.equal(w[0][2][NodeProp.NODE_NAME], "SPAN", "span included");
-	QUnit.equal(w[0][2][NodeProp.CHILD_NODES][0][NodeProp.TEXT], "hello", "Text node included");
+	QUnit.equal(w[0].patch[NodeProp.NODE_NAME], "SPAN", "span included");
+	QUnit.equal(w[0].patch[NodeProp.CHILD_NODES][0][NodeProp.TEXT], "hello", "Text node included");
 });
 
 QUnit.module("serialize")
@@ -92,9 +92,9 @@ QUnit.test("works", function(){
 	b.appendChild(span);
 
 	var patches = diff(a, b);
-	var w = serialize(patches);
+	var w = sserialize(patches);
 
-	apply(a, w, { root: a });
+	applyp(a, w, { root: a });
 
 	QUnit.equal(a.childNodes.length, 1, "there is one child");
 	QUnit.equal(a.childNodes[0].nodeName, "SPAN", "child is a span");
@@ -112,7 +112,7 @@ QUnit.test("attributes and events as well", function(){
 	b.setAttribute("foo", "bar");
 
 	var patches = diff(a, b);
-	var w = serialize(patches);
+	var w = sserialize(patches);
 
 	var numOfEvents = 0;
 
@@ -124,7 +124,7 @@ QUnit.test("attributes and events as well", function(){
 		root: a
 	};
 
-	apply(a, w, patchOptions);
+	applyp(a, w, patchOptions);
 
 	triggerClick(a.childNodes[0]);
 	triggerClick(a);
@@ -152,17 +152,17 @@ QUnit.test("events are removed", function(){
 	};
 
 	var patches = diff(a, b);
-	var w = serialize(patches);
+	var w = sserialize(patches);
 
-	apply(a, w, patchOptions);
+	applyp(a, w, patchOptions);
 
 	// Now let's remove the event.
 	delete b.__events;
 
 	patches = diff(a, b);
-	w = serialize(patches);
+	w = sserialize(patches);
 
-	apply(a, w, patchOptions);
+	applyp(a, w, patchOptions);
 
 	triggerClick(a);
 });
@@ -185,9 +185,9 @@ QUnit.test("lists works", function(){
 	}
 
 	var patches = diff(a, b);
-	var w = serialize(patches);
+	var w = sserialize(patches);
 
-	QUnit.equal(w.length, 0, "No differences to start");
+	QUnit.equal(Object.keys(w).length, 0, "No differences to start");
 
 	var three = b.childNodes[3];
 	li = document.createElement("li");

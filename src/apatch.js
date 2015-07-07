@@ -9,7 +9,7 @@ module.exports = patch;
 
 function patch(rootNode, patches, renderOptions) {
 	if(!patches.a) {
-		patches = deserialize(patches);
+		patches = deserialize(patches, renderOptions);
 		patches.a = rootNode;
 	}
 

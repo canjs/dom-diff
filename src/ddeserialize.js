@@ -12,34 +12,36 @@ function deserialize(serialized, diffOptions){
 	var s = {};
 
 	for(var p in serialized) {
-		deserializeProp(s, p, serialized[p]);
+		deserializeProp(s, p, serialized[p], diffOptions);
 	}
 
 	return s;
 }
 
-function deserializeProp(s, prop, value) {
+function deserializeProp(s, prop, value, diffOptions) {
 	var deserialized;
 
 	if(isArray(value)) {
-		deserialized = value.map(deserializePatch);
+		deserialized = value.map(function(p){
+			return deserializePatch(p, diffOptions);
+		});
 	} else {
-		deserialized = deserializePatch(value);
+		deserialized = deserializePatch(value, diffOptions);
 	}
 
 	s[prop] = deserialized;
 }
 
-function deserializePatch(p) {
-	return new Patch(p.type, deserializeNode(p.node),
-					 deserializeNode(p.patch));
+function deserializePatch(p, diffOptions) {
+	return new Patch(p.type, deserializeNode(p.type, p.node, diffOptions),
+					 deserializeNode(p.type, p.patch, diffOptions));
 }
 
-function deserializeNode(node) {
-	if(!node) {
+function deserializeNode(type, node, diffOptions) {
+	if(!node || !isNodePatch(type)) {
 		return node;
 	}
-	return objectToNode(node);
+	return objectToNode(node, false, diffOptions);
 }
 
 
@@ -90,11 +92,13 @@ function objectToNode(objNode, insideSvg, diffOptions) {
 
 		}
 	}
+	node._cloned = true;
 	return node;
 }
 
 var nodePatches = {};
-[Patch.INSERT, Patch.REMOVE].forEach(function(type){
+[Patch.INSERT, Patch.REMOVE,
+ Patch.NODE, Patch.ORDER].forEach(function(type){
 	nodePatches[type] = true;
 });
 function isNodePatch(type){
