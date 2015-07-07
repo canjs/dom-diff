@@ -59,7 +59,7 @@ QUnit.test("handles complex changes", function(){
 	var patches = diff(a, b);
 	var w = serialize(patches);
 
-	var d = deserialize(w);
+	var d = deserialize(w, {root:a});
 
 	QUnit.equal(Array.isArray(d[2]), true, "first is an array");
 	QUnit.equal(typeof d[4], "object", "second is an object");

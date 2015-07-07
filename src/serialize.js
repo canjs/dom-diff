@@ -41,7 +41,7 @@ function serializePatch(p) {
 	return {
 		route: p.route,
 		type: type,
-		node: serializeNode(node),
+		node: node ? dom.getID(node) : node,
 		patch: serializeNode(patch)
 	};
 }

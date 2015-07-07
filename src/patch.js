@@ -32,9 +32,9 @@ function patchRecursive(rootNode, patches, renderOptions) {
 
 	indices.forEach(function(i){
 		var patch = patches[i];
-		var node = domId.getNode(patch.route, renderOptions.root);
+
 		rootNode = applyPatch(rootNode,
-			node,
+			patch.node,
 			patch,
 			renderOptions);
 	});
@@ -67,11 +67,16 @@ function patchRecursiveOld(rootNode, patches, renderOptions) {
 }
 
 function applyPatch(rootNode, domNode, patchList, renderOptions) {
-    if (!domNode) {
-        return rootNode
-    }
+	if(!domNode) {
+		if(patchList.route) {
+			domNode = domId.getNode(patchList.route, renderOptions.root);
+		}
 
-    var newNode
+		if(!domNode)
+			return;
+	}
+
+    var newNode;
 
     if (isArray(patchList)) {
         for (var i = 0; i < patchList.length; i++) {

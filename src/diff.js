@@ -9,13 +9,14 @@ var dom = require("./dom-id");
 
 module.exports = diff;
 
-function diff(a, b) {
+function diff(a, b, diffOptions) {
 	var patch = { a: a };
-	walk(a, b, patch, 0);
+	diffOptions = diffOptions || {};
+	walk(a, b, patch, 0, diffOptions);
 	return patch;
 }
 
-function walk(a, b, patch, index) {
+function walk(a, b, patch, index, diffOptions) {
 	if (a === b) {
 		return;
 	}
@@ -45,7 +46,7 @@ function walk(a, b, patch, index) {
 					apply = appendPatch(apply,
 						new Patch(Patch.REMOVE_EVENT, a, eventsPatch[1]));
 				}
-				apply = diffChildren(a, b, patch, apply, index)
+				apply = diffChildren(a, b, patch, apply, index, diffOptions);
 			} else {
 				apply = appendPatch(apply, new Patch(Patch.NODE, a, b))
 				applyClear = true
@@ -72,11 +73,12 @@ function walk(a, b, patch, index) {
 	if (apply) {
 		var route;
 		if(apply.node) {
-			route = dom.getID(apply.node);
+			route = dom.getID(apply.node, diffOptions.root);
 		} else if(apply.patch && apply.patch.parentNode) {
-			route = dom.getID(apply.patch.parentNode);
+			route = dom.getID(apply.patch.parentNode, diffOptions.root);
 		}
 		apply.route = route;
+
 		patch[index] = apply
 	}
 
@@ -85,7 +87,7 @@ function walk(a, b, patch, index) {
 	}
 }
 
-function diffChildren(a, b, patch, apply, index) {
+function diffChildren(a, b, patch, apply, index, diffOptions) {
 	var aChildren = getChildren(a);
 	var bChildren = getChildren(b);
 
@@ -108,7 +110,7 @@ function diffChildren(a, b, patch, apply, index) {
 					new Patch(Patch.INSERT, null, rightNode));
 			}
 		} else {
-			walk(leftNode, rightNode, patch, index);
+			walk(leftNode, rightNode, patch, index, diffOptions);
 		}
 
 		if (isNode(leftNode) && leftNode.count) {

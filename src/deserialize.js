@@ -7,7 +7,8 @@ var isArray = Array.isArray;
 module.exports = deserialize;
 
 function deserialize(serialized, diffOptions){
-	var root = diffOptions && diffOptions.root;
+	diffOptions = diffOptions || {};
+	var root = diffOptions.root;
 
 	var s = {};
 
@@ -40,6 +41,10 @@ function deserializePatch(p, diffOptions) {
 }
 
 function deserializeNode(type, node, diffOptions) {
+	if(typeof node === "string") {
+		return dom.getNode(node, diffOptions.root);
+	}
+
 	if(!node || !isNodePatch(type)) {
 		return node;
 	}
