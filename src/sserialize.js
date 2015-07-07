@@ -1,38 +1,53 @@
+var route = require("./dom-id");
 var NodeProp = require("./types/node_prop");
-var dom = require("./dom-id");
-var forEach = require("./for-each-patch");
 
 var isArray = Array.isArray;
 
 module.exports = serialize;
 
-
-
 function serialize(patches){
-	var out = [];
-	forEach.call(patches, function(p){
-		var a = isArray(p) ? p : [p];
+	var s = {};
 
-		a.forEach(function(p){
-			out.push([
-				p.type,
-				p.node ? dom.getID(p.node) : p.node,
-				toArray(p.patch)
-			]);
-		});
-	});
-	return out;
+	for(var p in patches) {
+		serializeProp(s, p, patches[p]);
+	}
 
+	return s;
 }
 
-function toArray(a){
-	if(isNode(a)) {
-		return nodeToObject(a);
-	} else if(a) {
-		// Other stuff
-		return a;
+function serializeProp(s, prop, value) {
+	if(prop === "a") {
+		return;
 	}
-	return null;
+
+	var serialized;
+
+	if(isArray(value)) {
+		serialized = value.map(serializePatch);
+	} else {
+		serialized = serializePatch(value);
+	}
+
+	s[prop] = serialized;
+}
+
+function serializePatch(p) {
+	var type = p.type;
+	var node = p.node;
+	var patch = p.patch;
+
+	return {
+		type: type,
+		node: serializeNode(node),
+		patch: serializeNode(patch)
+	};
+}
+
+function serializeNode(node) {
+	if(isNode(node)) {
+		return nodeToObject(node);
+	}
+	return node;
 }
 
 function isNode(a){

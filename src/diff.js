@@ -1,11 +1,6 @@
 var isArray = Array.isArray;
 
 var Patch = require("./types/patch");
-/*var isVNode = requirex("../vnode/is-vnode")
-var isVText = requirex("../vnode/is-vtext")
-var isWidget = requirex("../vnode/is-widget")
-var isThunk = requirex("../vnode/is-thunk")
-var handleThunk = requirex("../vnode/handle-thunk")*/
 
 var diffProps = require("./diff-props");
 var diffEvents = require("./diff-events");
@@ -32,7 +27,7 @@ function walk(a, b, patch, index) {
 		if (isNode(a)) {
 			if (a.tagName === b.tagName &&
 				a.namespace === b.namespace &&
-				a.key === b.key) {
+				a[keyProp(a)] === keyFor(b)) {
 				// TODO this should probably be attributes
 				var propsPatch = diffProps(a, b);
 				if (propsPatch) {
@@ -50,19 +45,19 @@ function walk(a, b, patch, index) {
 				}
 				apply = diffChildren(a, b, patch, apply, index)
 			} else {
-				apply = appendPatch(apply, new Patch(Patch.VNODE, a, b))
+				apply = appendPatch(apply, new Patch(Patch.NODE, a, b))
 				applyClear = true
 			}
 		} else {
-			apply = appendPatch(apply, new Patch(Patch.VNODE, a, b))
+			apply = appendPatch(apply, new Patch(Patch.NODE, a, b))
 			applyClear = true
 		}
 	} else if (isText(b)) {
 		if (!isText(a)) {
-			apply = appendPatch(apply, new Patch(Patch.VTEXT, a, b))
+			apply = appendPatch(apply, new Patch(Patch.TEXT, a, b))
 			applyClear = true
 		} else if (a.text !== b.text) {
-			apply = appendPatch(apply, new Patch(Patch.VTEXT, a, b))
+			apply = appendPatch(apply, new Patch(Patch.TEXT, a, b))
 		}
 	} else if (isWidget(b)) {
 		if (!isWidget(a)) {
@@ -126,8 +121,8 @@ function diffChildren(a, b, patch, apply, index) {
 
 function clearState(vNode, patch, index) {
 	// TODO: Make this a single walk, not two
-	unhook(vNode, patch, index)
-	destroyWidgets(vNode, patch, index)
+	//unhook(vNode, patch, index)
+	//destroyWidgets(vNode, patch, index)
 }
 
 // Patch records for all destroyed widgets must be added because we need
@@ -259,10 +254,10 @@ function reorder(aChildren, bChildren) {
 		var aItem = aChildren[i]
 		var itemIndex
 
-		if (aItem.key) {
-			if (bKeys.hasOwnProperty(aItem.key)) {
+		if (keyFor(aItem)) {
+			if (bKeys.hasOwnProperty(keyFor(aItem))) {
 				// Match up the old keys
-				itemIndex = bKeys[aItem.key]
+				itemIndex = bKeys[keyFor(aItem)]
 				newChildren.push(bChildren[itemIndex])
 
 			} else {
@@ -294,8 +289,8 @@ function reorder(aChildren, bChildren) {
 	for (var j = 0; j < bChildren.length; j++) {
 		var newItem = bChildren[j]
 
-		if (newItem.key) {
-			if (!aKeys.hasOwnProperty(newItem.key)) {
+		if (keyFor(newItem)) {
+			if (!aKeys.hasOwnProperty(keyFor(newItem))) {
 				// Add any new keyed items
 				// We are adding new items to the end and then sorting them
 				// in place. In future we should insert new items in place.
@@ -323,17 +318,17 @@ function reorder(aChildren, bChildren) {
 			simulateItem = simulate[simulateIndex]
 		}
 
-		if (!simulateItem || simulateItem.key !== wantedItem.key) {
+		if (!simulateItem || keyFor(simulateItem) !== keyFor(wantedItem)) {
 			// if we need a key in this position...
-			if (wantedItem.key) {
-				if (simulateItem && simulateItem.key) {
+			if (keyFor(wantedItem)) {
+				if (simulateItem && keyFor(simulateItem)) {
 					// if an insert doesn't put this key in place, it needs to move
-					if (bKeys[simulateItem.key] !== k + 1) {
-						removes.push(remove(simulate, simulateIndex, simulateItem.key))
+					if (bKeys[keyProp(simulateItem)] !== k + 1) {
+						removes.push(remove(simulate, simulateIndex, keyFor(simulateItem)))
 						simulateItem = simulate[simulateIndex]
 						// if the remove didn't put the wanted item in place, we need to insert it
-						if (!simulateItem || simulateItem.key !== wantedItem.key) {
-							inserts.push({key: wantedItem.key, to: k})
+						if (!simulateItem || keyFor(simulateItem) !== keyFor(wantedItem)) {
+							inserts.push({key: keyFor(wantedItem), to: k})
 						}
 						// items are matching, so skip ahead
 						else {
@@ -341,17 +336,17 @@ function reorder(aChildren, bChildren) {
 						}
 					}
 					else {
-						inserts.push({key: wantedItem.key, to: k})
+						inserts.push({key: keyFor(wantedItem), to: k})
 					}
 				}
 				else {
-					inserts.push({key: wantedItem.key, to: k})
+					inserts.push({key: keyFor(wantedItem), to: k})
 				}
 				k++
 			}
 			// a key in simulate has no matching wanted key, remove it
-			else if (simulateItem && simulateItem.key) {
-				removes.push(remove(simulate, simulateIndex, simulateItem.key))
+			else if (simulateItem && keyFor(simulateItem)) {
+				removes.push(remove(simulate, simulateIndex, keyFor(simulateItem)))
 			}
 		}
 		else {
@@ -363,7 +358,7 @@ function reorder(aChildren, bChildren) {
 	// remove all the remaining nodes from simulate
 	while(simulateIndex < simulate.length) {
 		simulateItem = simulate[simulateIndex]
-		removes.push(remove(simulate, simulateIndex, simulateItem && simulateItem.key))
+		removes.push(remove(simulate, simulateIndex, simulateItem && keyFor(simulateItem)))
 	}
 
 	// If the only moves we have are deletes then we can just
@@ -394,17 +389,17 @@ function remove(arr, index, key) {
 }
 
 function keyIndex(children) {
-	var keys = {}
-	var free = []
-	var length = children.length
+	var keys = {};
+	var free = [];
+	var length = children.length;
 
 	for (var i = 0; i < length; i++) {
 		var child = children[i]
 
-		if (child.key) {
-			keys[child.key] = i
+		if (keyFor(child)) {
+			keys[keyFor(child)] = i;
 		} else {
-			free.push(i)
+			free.push(i);
 		}
 	}
 
@@ -412,6 +407,14 @@ function keyIndex(children) {
 		keys: keys,		// A hash of key name to index
 		free: free		// An array of unkeyed item indices
 	}
+}
+
+function keyFor(a) {
+	return a.id;
+}
+
+function keyProp(a) {
+	return "id";
 }
 
 function appendPatch(apply, patch) {
@@ -445,9 +448,9 @@ function getChildren(a){
 	var out = [];
 	var cur = a.firstChild;
 	while(cur) {
-		if(!isText(cur)) {
+		//if(!isText(cur)) {
 			out.push(cur);
-		}
+		//}
 		cur = cur.nextSibling;
 	}
 	return out;

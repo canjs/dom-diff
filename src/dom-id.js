@@ -46,34 +46,6 @@ var rootNode = exports.rootNode = function(root){
 	return root.documentElement || root;
 };
 
-/**
- * @function can-worker/dom-id/updateNodeTree
- * @parent can-worker/dom-id
- *
- * Update the nodeTree for a given id. The nodeTree is described above.
- */
-var updateNodeTree = function(id){
-	var map, parentId;
-	var ids = id.split(".");
-	var childId = id;
-
-
-	/*while(ids.length > 2) {
-		ids.pop();
-		parentId = ids.join(".");
-		map = parentMap[parentId];
-		if(!map) {
-			map = parentMap[parentId] = {length: 0};
-		}
-		if(!map[childId]) {
-			map[childId] = true;
-			map.length++;
-		}
-		childId = parentId;
-	}*/
-
-};
-
 var cache = function(node, routeInfo){
 	node.__routeInfo = routeInfo;
 	nodeCache[routeInfo.id] = node;
@@ -223,7 +195,7 @@ exports.getNode = function(id, root){
 
 	// Find the node with traversal
 	node = findNode(id, root);
-	cache(node, id);
+	cache(node, {id:id});
 
 	return node;
 };

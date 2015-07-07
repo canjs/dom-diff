@@ -1,5 +1,4 @@
 var isObject = require("is-object");
-//var isHook = requirex("../vnode/is-vhook")
 
 var forEach = [].forEach;
 
@@ -9,31 +8,31 @@ function diffProps(a, b) {
     var diff
 
 	forEach.call(a.attributes, function(aAttr){
-
+		var aAttrName = aAttr.name;
 
     //for (var aKey in a) {
-        if (!(aKey in b)) {
+        if (!b.getAttribute(aAttrName)) {
             diff = diff || {}
-            diff[aKey] = undefined
+            diff[aAttrName] = undefined
         }
 
-        var aValue = a[aKey]
-        var bValue = b[aKey]
+        var aValue = a[aAttrName]
+        var bValue = b[aAttrName]
 
         if (aValue === bValue) {
             //continue
         } else if (isObject(aValue) && isObject(bValue)) {
             if (getPrototype(bValue) !== getPrototype(aValue)) {
                 diff = diff || {}
-                diff[aKey] = bValue
+                diff[aAttrName] = bValue
             } else if (isHook(bValue)) {
                  diff = diff || {}
-                 diff[aKey] = bValue
+                 diff[aAttrName] = bValue
             } else {
                 var objectDiff = diffProps(aValue, bValue)
                 if (objectDiff) {
                     diff = diff || {}
-                    diff[aKey] = objectDiff
+                    diff[aAttrName] = objectDiff
                 }
             }
         } else {

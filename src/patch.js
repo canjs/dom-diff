@@ -1,6 +1,7 @@
 var NodeProp = require("./types/node_prop");
 var Patch = require("./types/patch");
 var deserialize = require("./deserialize");
+var forEach = require("./for-each-patch");
 
 var isArray = Array.isArray;
 
@@ -19,6 +20,9 @@ function patch(a, patches, patchOptions) {
 		switch(p.type) {
 			case Patch.INSERT:
 				n.appendChild(p.patch);
+				break;
+			case Patch.REMOVE:
+				p.node.parentNode.removeChild(p.node);
 				break;
 			case Patch.TEXT:
 				break;
@@ -48,14 +52,6 @@ function patch(a, patches, patchOptions) {
 				break;
 		}
 	});
-}
-
-function forEach(fn){
-	var i = 0;
-	while(this[i]) {
-		fn(this[i]);
-		i++;
-	}
 }
 
 function forEachProp(fn){
