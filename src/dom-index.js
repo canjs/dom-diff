@@ -23,27 +23,27 @@ function recurse(rootNode, tree, indices, nodes, rootIndex) {
 
     if (rootNode) {
         if (indexInRange(indices, rootIndex, rootIndex)) {
-            nodes[rootIndex] = rootNode
+            nodes[rootIndex] = rootNode;
         }
 
-        var vChildren = tree.children
+        var vChildren = tree.children;
 
         if (vChildren) {
 
-            var childNodes = rootNode.childNodes
+            var childNodes = rootNode.childNodes;
 
             for (var i = 0; i < tree.children.length; i++) {
-                rootIndex += 1
+                rootIndex += 1;
 
-                var vChild = vChildren[i] || noChild
-                var nextIndex = rootIndex + (vChild.count || 0)
+                var vChild = vChildren[i] || noChild;
+                var nextIndex = rootIndex + (vChild.count || 0);
 
                 // skip recursion down the tree if there are no nodes down here
                 if (indexInRange(indices, rootIndex, nextIndex)) {
-                    recurse(childNodes[i], vChild, indices, nodes, rootIndex)
+                    recurse(childNodes[i], vChild, indices, nodes, rootIndex);
                 }
 
-                rootIndex = nextIndex
+                rootIndex = nextIndex;
             }
         }
     }

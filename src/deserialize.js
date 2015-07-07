@@ -2,21 +2,48 @@ var NodeProp = require("./types/node_prop");
 var Patch = require("./types/patch");
 var dom = require("./dom-id");
 
+var isArray = Array.isArray;
+
 module.exports = deserialize;
 
-function deserialize(w, diffOptions){
+function deserialize(serialized, diffOptions){
 	var root = diffOptions && diffOptions.root;
 
-	var patches = [];
-	w.forEach(function(u){
-		var type = u[0];
-		var node = u[1] ? dom.getNode(u[1], root) : u[1];
-		var patch = isNodePatch(type) ? objectToNode(u[2], false, diffOptions)
-			: u[2];
+	var s = {};
 
-		patches.push(new Patch(type, node, patch));
-	});
-	return patches;
+	for(var p in serialized) {
+		deserializeProp(s, p, serialized[p], diffOptions);
+	}
+
+	return s;
+}
+
+function deserializeProp(s, prop, value, diffOptions) {
+	var deserialized;
+
+	if(isArray(value)) {
+		deserialized = value.map(function(p){
+			return deserializePatch(p, diffOptions);
+		});
+	} else {
+		deserialized = deserializePatch(value, diffOptions);
+	}
+
+	s[prop] = deserialized;
+}
+
+function deserializePatch(p, diffOptions) {
+	var patch = new Patch(p.type, deserializeNode(p.type, p.node, diffOptions),
+					 deserializeNode(p.type, p.patch, diffOptions));
+	patch.route = p.route;
+	return patch;
+}
+
+function deserializeNode(type, node, diffOptions) {
+	if(!node || !isNodePatch(type)) {
+		return node;
+	}
+	return objectToNode(node, false, diffOptions);
 }
 
 
@@ -72,7 +99,8 @@ function objectToNode(objNode, insideSvg, diffOptions) {
 }
 
 var nodePatches = {};
-[Patch.INSERT, Patch.REMOVE].forEach(function(type){
+[Patch.INSERT, Patch.REMOVE,
+ Patch.NODE, Patch.ORDER].forEach(function(type){
 	nodePatches[type] = true;
 });
 function isNodePatch(type){

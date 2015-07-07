@@ -5,6 +5,8 @@ var Patch = require("./types/patch");
 var diffProps = require("./diff-props");
 var diffEvents = require("./diff-events");
 
+var dom = require("./dom-id");
+
 module.exports = diff;
 
 function diff(a, b) {
@@ -68,6 +70,13 @@ function walk(a, b, patch, index) {
 	}
 
 	if (apply) {
+		var route;
+		if(apply.node) {
+			route = dom.getID(apply.node);
+		} else if(apply.patch && apply.patch.parentNode) {
+			route = dom.getID(apply.patch.parentNode);
+		}
+		apply.route = route;
 		patch[index] = apply
 	}
 
@@ -96,10 +105,10 @@ function diffChildren(a, b, patch, apply, index) {
 			if (rightNode) {
 				// Excess nodes in b need to be added
 				apply = appendPatch(apply,
-					new Patch(Patch.INSERT, null, rightNode))
+					new Patch(Patch.INSERT, null, rightNode));
 			}
 		} else {
-			walk(leftNode, rightNode, patch, index)
+			walk(leftNode, rightNode, patch, index);
 		}
 
 		if (isNode(leftNode) && leftNode.count) {
@@ -448,9 +457,9 @@ function getChildren(a){
 	var out = [];
 	var cur = a.firstChild;
 	while(cur) {
-		//if(!isText(cur)) {
+		if(!isText(cur)) {
 			out.push(cur);
-		//}
+		}
 		cur = cur.nextSibling;
 	}
 	return out;

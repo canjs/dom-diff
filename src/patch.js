@@ -1,63 +1,105 @@
-var NodeProp = require("./types/node_prop");
-var Patch = require("./types/patch");
-var deserialize = require("./deserialize");
-var forEach = require("./for-each-patch");
-
 var isArray = Array.isArray;
+
+var render = require("./create-element");
+var domIndex = require("./dom-index");
+var patchOp = require("./patch-op");
+var deserialize = require("./deserialize");
+var domId = require("./dom-id");
 
 module.exports = patch;
 
-function patch(a, patches, patchOptions) {
-	if(isArray(patches)) {
-		patches = deserialize(patches, patchOptions);
+function patch(rootNode, patches, renderOptions) {
+	if(!patches.a) {
+		patches = deserialize(patches, renderOptions);
+		patches.a = rootNode;
 	}
 
-	patchOptions = patchOptions || {};
+    renderOptions = renderOptions || {}
+    renderOptions.patch = renderOptions.patch || patchRecursive
+    renderOptions.render = renderOptions.render || render
 
-	forEach.call(patches, function(p){
-		var n = p.node || a;
-
-		switch(p.type) {
-			case Patch.INSERT:
-				n.appendChild(p.patch);
-				break;
-			case Patch.REMOVE:
-				p.node.parentNode.removeChild(p.node);
-				break;
-			case Patch.TEXT:
-				break;
-			case Patch.ATTRS:
-				forEachProp.call(p.patch, function(key, value){
-					n.setAttribute(key, value);
-				});
-				break;
-			case Patch.ADD_EVENT:
-				if(patchOptions.eventHandler) {
-					n.__events = n.__events || {};
-					p.patch.forEach(function(evName){
-						n.addEventListener(evName, patchOptions.eventHandler);
-						n.__events[evName] = true;
-					});
-				}
-				break;
-			case Patch.REMOVE_EVENT:
-				if(patchOptions.eventHandler) {
-					p.patch.forEach(function(evName){
-						n.removeEventListener(evName, patchOptions.eventHandler);
-						if(n.__events) {
-							delete n.__events[evName];
-						}
-					});
-				}
-				break;
-		}
-	});
+    return renderOptions.patch(rootNode, patches, renderOptions)
 }
 
-function forEachProp(fn){
-	var keys = Object.keys(this);
-	var self = this;
-	forEach.call(keys, function(prop){
-		fn(prop, self[prop]);
+function patchRecursive(rootNode, patches, renderOptions) {
+	var indices = patchIndices(patches);
+
+	var ownerDocument = rootNode.ownerDocument;
+
+	if(!renderOptions.document && ownerDocument !== document) {
+		renderOptions.document = ownerDocument;
+	}
+
+	indices.forEach(function(i){
+		var patch = patches[i];
+		var node = domId.getNode(patch.route, renderOptions.root);
+		rootNode = applyPatch(rootNode,
+			node,
+			patch,
+			renderOptions);
 	});
+
+}
+
+function patchRecursiveOld(rootNode, patches, renderOptions) {
+    var indices = patchIndices(patches)
+
+    if (indices.length === 0) {
+        return rootNode
+    }
+
+    var index = domIndex(rootNode, patches.a, indices);
+    var ownerDocument = rootNode.ownerDocument;
+
+    if (!renderOptions.document && ownerDocument !== document) {
+        renderOptions.document = ownerDocument
+    }
+
+    for (var i = 0; i < indices.length; i++) {
+        var nodeIndex = indices[i]
+        rootNode = applyPatch(rootNode,
+            index[nodeIndex],
+            patches[nodeIndex],
+            renderOptions)
+    }
+
+    return rootNode
+}
+
+function applyPatch(rootNode, domNode, patchList, renderOptions) {
+    if (!domNode) {
+        return rootNode
+    }
+
+    var newNode
+
+    if (isArray(patchList)) {
+        for (var i = 0; i < patchList.length; i++) {
+            newNode = patchOp(patchList[i], domNode, renderOptions)
+
+            if (domNode === rootNode) {
+                rootNode = newNode
+            }
+        }
+    } else {
+        newNode = patchOp(patchList, domNode, renderOptions)
+
+        if (domNode === rootNode) {
+            rootNode = newNode
+        }
+    }
+
+    return rootNode
+}
+
+function patchIndices(patches) {
+    var indices = []
+
+    for (var key in patches) {
+        if (key !== "a") {
+            indices.push(Number(key))
+        }
+    }
+
+    return indices
 }

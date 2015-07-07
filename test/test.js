@@ -2,12 +2,9 @@ var diff = require("dom-diff/diff");
 var Patch = require("dom-diff/types/patch");
 var NodeProp = require("dom-diff/types/node_prop");
 var serialize = require("dom-diff/serialize");
-var sserialize = require("dom-diff/sserialize");
-var deserialize = require("dom-diff/ddeserialize");
+var deserialize = require("dom-diff/deserialize");
 var apply = require("dom-diff/patch");
 var QUnit = require("steal-qunit");
-
-var applyp = require("dom-diff/apatch");
 
 QUnit.module("diffing");
 
@@ -34,7 +31,7 @@ QUnit.test("can be serialized", function(){
 	b.appendChild(span);
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
 	QUnit.equal(w[0].patch[NodeProp.NODE_NAME], "SPAN", "span included");
 	QUnit.equal(w[0].patch[NodeProp.CHILD_NODES][0][NodeProp.TEXT], "hello", "Text node included");
@@ -60,7 +57,7 @@ QUnit.test("handles complex changes", function(){
 
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
 	var d = deserialize(w);
 
@@ -92,9 +89,9 @@ QUnit.test("works", function(){
 	b.appendChild(span);
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
-	applyp(a, w, { root: a });
+	apply(a, w, { root: a });
 
 	QUnit.equal(a.childNodes.length, 1, "there is one child");
 	QUnit.equal(a.childNodes[0].nodeName, "SPAN", "child is a span");
@@ -112,7 +109,7 @@ QUnit.test("attributes and events as well", function(){
 	b.setAttribute("foo", "bar");
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
 	var numOfEvents = 0;
 
@@ -124,7 +121,7 @@ QUnit.test("attributes and events as well", function(){
 		root: a
 	};
 
-	applyp(a, w, patchOptions);
+	apply(a, w, patchOptions);
 
 	triggerClick(a.childNodes[0]);
 	triggerClick(a);
@@ -152,17 +149,17 @@ QUnit.test("events are removed", function(){
 	};
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
-	applyp(a, w, patchOptions);
+	apply(a, w, patchOptions);
 
 	// Now let's remove the event.
 	delete b.__events;
 
 	patches = diff(a, b);
-	w = sserialize(patches);
+	w = serialize(patches);
 
-	applyp(a, w, patchOptions);
+	apply(a, w, patchOptions);
 
 	triggerClick(a);
 });
@@ -185,7 +182,7 @@ QUnit.test("lists works", function(){
 	}
 
 	var patches = diff(a, b);
-	var w = sserialize(patches);
+	var w = serialize(patches);
 
 	QUnit.equal(Object.keys(w).length, 0, "No differences to start");
 
@@ -196,5 +193,22 @@ QUnit.test("lists works", function(){
 
 	var patches = diff(a, b);
 
-	applyp(a, patches);
+	apply(a, patches);
+});
+
+QUnit.test("deep changes works", function(){
+	var a = document.createElement("div");
+	var b = document.createElement("div");
+
+	a.innerHTML = b.innerHTML = "<div id='foo'><section><div></div></section></div>";
+
+	var div = b.firstChild.firstChild.firstChild;
+	div.appendChild(document.createElement("span"));
+
+	var patches = diff(a, b);
+	apply(a, patches, { root: a });
+
+	var span = a.firstChild.firstChild.firstChild.firstChild;
+	QUnit.ok(span, "a span was created");
+	QUnit.equal(span.nodeName, "SPAN", "correct node created");
 });

@@ -189,13 +189,15 @@ exports.getNode = function(id, root){
 	var node;
 
 	node = nodeCache[id];
-	if(node) {
+	if(node && !root) {
 		return node;
 	}
 
 	// Find the node with traversal
 	node = findNode(id, root);
-	cache(node, {id:id});
+	if(!root) {
+		cache(node, {id:id});
+	}
 
 	return node;
 };
