@@ -105,7 +105,7 @@ function objectToNode(objNode, insideSvg, diffOptions) {
 
 var nodePatches = {};
 [Patch.INSERT, Patch.REMOVE,
- Patch.NODE, Patch.ORDER].forEach(function(type){
+ Patch.NODE, Patch.TEXT].forEach(function(type){
 	nodePatches[type] = true;
 });
 function isNodePatch(type){

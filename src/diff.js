@@ -453,16 +453,16 @@ function isText(a){
 }
 
 function getChildren(a){
-	if(a.children) {
+	/*if(a.children) {
 		return a.children;
-	}
+	}*/
 
 	var out = [];
 	var cur = a.firstChild;
 	while(cur) {
-		if(!isText(cur)) {
+		//if(!isText(cur)) {
 			out.push(cur);
-		}
+		//}
 		cur = cur.nextSibling;
 	}
 	return out;

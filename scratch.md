@@ -6,7 +6,7 @@ dom-diff
 
 
 
-can-worker
+can-worker -> worker-rendering
 ----------
 
 __window__
@@ -33,3 +33,12 @@ diff(document.documentElement, function(patches){
     postMessage(msg);
 
 });
+
+
+
+
+var render = require("worker-rendering");
+
+var worker = new Worker(...);
+
+render(worker);
