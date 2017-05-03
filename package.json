@@ -27,8 +27,8 @@
     }
   },
   "devDependencies": {
-    "steal": "^0.10.5",
-    "steal-qunit": "0.0.4"
+    "steal": "^1.5.2",
+    "steal-qunit": "1.0.1"
   },
   "dependencies": {
     "is-object": "^1.0.1"
