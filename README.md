@@ -1,5 +1,7 @@
 # dom-diff
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/canjs/dom-diff.svg)](https://greenkeeper.io/)
+
 Creates diffs of DOM or a virtual DOM that looks like the real DOM.
 
 ## Installation
